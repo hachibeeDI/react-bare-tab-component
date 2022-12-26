@@ -1,6 +1,5 @@
 import type {ReactNode, SetStateAction} from 'react';
-import {useCallback} from 'react';
-import React, {useEffect, memo, useRef, createContext, useContext, useState} from 'react';
+import React, {useEffect, memo, useRef, createContext, useContext, useState, useCallback} from 'react';
 
 import type {History} from 'history';
 
@@ -51,7 +50,7 @@ const TabPanelContent = memo(function TabPanelContent(props: {
     if (forceRemount) {
       return null;
     }
-    if (lazy && isAppeardRef.current === false) {
+    if (lazy === true && isAppeardRef.current === false) {
       return null;
     }
   }
