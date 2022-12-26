@@ -65,7 +65,14 @@ const TabPanelContent = memo(function TabPanelContent(props: {
 type TabProps<Keys extends string, HistoryKey extends string | undefined = undefined> = {
   className?: string;
   overwriteDefault?: Keys;
+  /**
+   * History object to sync.
+   */
   history?: History;
+  /**
+   * Key to store current tab key in history state.
+   * You must use it with `history` props.
+   */
   synchronizeHistoryKey?: HistoryKey;
   children: ReactNode;
 };
@@ -171,12 +178,15 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
       );
     },
 
-    /**
-     *
-     * @param props.lazy trueのとき、選択されるまで内部コンポーネントのレンダリングを遅延させる
-     * @returns
-     */
-    TabPanel<Key extends Keys>(this: void, props: BaseProps<Key> & {lazy?: boolean; forceRemount?: boolean}) {
+    /** */
+    TabPanel<Key extends Keys>(
+      this: void,
+      props: BaseProps<Key> & {
+        /** If true, children will not be rendered until it's selected. */
+        lazy?: boolean;
+        forceRemount?: boolean;
+      },
+    ) {
       const {tabKey, className, lazy, forceRemount, children} = props;
       const {tabKey: selectedTabKey} = useContext(TabContext);
       const isSelected = selectedTabKey === tabKey;
