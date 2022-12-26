@@ -28,13 +28,13 @@ const TabPanelContent = memo(function TabPanelContent(props: {
    * ユーザーがタブを開くまで中のコンポーネントをレンダリングしない。
    * 以下のforceRemountと排他なので注意。
    */
-  lazy?: boolean;
+  lazy?: undefined | boolean;
   /**
    * ユーザーがタブを閉じてから開くたびに中のコンポーネントをレンダリングしなおす。
    * これによって、同じpropsを渡していたとしてもuseEffectが毎回走る。
    */
-  forceRemount?: boolean;
-  className?: string;
+  forceRemount?: undefined | boolean;
+  className?: undefined | string;
   children: ReactNode;
 }) {
   const {isSelected, lazy, forceRemount, className, children} = props;

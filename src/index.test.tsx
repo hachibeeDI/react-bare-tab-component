@@ -17,9 +17,9 @@ type TestTabKey = 'x' | 'y' | 'z';
 const {Tab, TabList, TabNav, TabPanel} = tabFactory<TestTabKey>('y');
 
 describe('BareTabComponent', () => {
-  function TestMain({lazy = [], history}: {lazy?: ReadonlyArray<TestTabKey>; history?: History}) {
+  function TestMain({lazy = [], ...restProps}: {lazy?: ReadonlyArray<TestTabKey>; history?: History}) {
     return (
-      <Tab history={history} synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY}>
+      <Tab synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY} {...restProps}>
         <TabList>
           <TabNav tabKey="x">tab nav x</TabNav>
           <TabNav tabKey="y">tab nav y</TabNav>
@@ -77,11 +77,13 @@ describe('BareTabComponent', () => {
 
     render(<TestMain history={history} />);
 
-    expect(history.location.state['test-main']).toBe('y');
+    //  eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect((history.location.state as any)['test-main']).toBe('y');
 
     await userEvent.click(getTabNav('z'));
 
-    expect(history.location.state['test-main']).toBe('z');
+    //  eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect((history.location.state as any)['test-main']).toBe('z');
     expect(getTabPanel('z').hidden).toBeFalsy();
 
     history.back();
