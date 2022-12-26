@@ -1,0 +1,36 @@
+{
+  "name": "react-bare-tab-component",
+  "version": "0.0.1",
+  "description": "This is a \"style free\" Tab Component for React. ",
+  "main": "./dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/hachibeeDI/react-bare-tab-component.git"
+  },
+  "keywords": [
+    "react",
+    "tab"
+  ],
+  "author": "OGURA_Daiki",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hachibeeDI/react-bare-tab-component/issues"
+  },
+  "homepage": "https://github.com/hachibeeDI/react-bare-tab-component#readme",
+  "devDependencies": {
+    "@testing-library/react": "^13.4.0",
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.10",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
+    "@typescript-eslint/parser": "^5.47.0",
+    "eslint": "^8.30.0",
+    "happy-dom": "^8.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.9.4",
+    "vitest": "^0.26.2"
+  }
+}

@@ -1,0 +1,4 @@
+.github/
+src/
+yarn-error.log
+node_modules/

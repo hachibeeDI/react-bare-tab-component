@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "declaration": true,
+    "jsx": "preserve",
+    "moduleResolution": "node",
+    // TODO: skip while vitest is broken
+    "skipLibCheck": true,
+
+    "strict": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
+    "exactOptionalPropertyTypes": true,
+
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": false,
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noErrorTruncation": true,
+
+    "lib": ["dom", "esnext"],
+    // TODO: node is for vitest... I should isolate it probably?
+    "types": ["react/next"],
+
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "files": ["./src/index.ts"],
+  "include": [
+    "./src/**/*"
+  ],
+}
