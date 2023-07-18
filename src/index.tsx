@@ -1,7 +1,7 @@
 import type {ReactNode, SetStateAction} from 'react';
 import React, {useEffect, memo, useRef, createContext, useContext, useState, useCallback} from 'react';
 
-import type {History} from 'history';
+import {Action, type History} from 'history';
 
 type BaseProps<Key extends string> = {
   tabKey: Key;
@@ -131,7 +131,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
         // 初期値投入
         history.push('', {[synchronizeHistoryKey]: tabKey});
         return history.listen(({action, location}) => {
-          if (action !== 'POP') {
+          if (action !== Action.Pop) {
             return;
           }
 
