@@ -136,7 +136,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
           }
 
           const state: any = location.state;
-          if (synchronizeHistoryKey in state) {
+          if (state != null && synchronizeHistoryKey in state) {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             setTabKey(state[synchronizeHistoryKey] as Keys);
           } else {
