@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {render, screen, waitFor} from '@testing-library/react';
 //  because of a bug
@@ -19,28 +19,57 @@ type TestTabKey = 'x' | 'y' | 'z';
 
 const {Tab, TabList, TabNav, TabPanel} = tabFactory<TestTabKey>('y');
 
+type Props = {lazy?: ReadonlyArray<TestTabKey>; history?: History};
+
+function TabPage(props: Props) {
+  const {lazy = []} = props;
+  return (
+    <Tab synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY} {...props}>
+      <TabList>
+        <TabNav tabKey="x">tab nav x</TabNav>
+        <TabNav tabKey="y">tab nav y</TabNav>
+        <TabNav tabKey="z">tab nav z</TabNav>
+      </TabList>
+      <TabPanel tabKey="x" lazy={lazy.includes('x')}>
+        tab content of x
+      </TabPanel>
+      <TabPanel tabKey="y" lazy={lazy.includes('y')}>
+        tab content of y
+      </TabPanel>
+      <TabPanel tabKey="z" lazy={lazy.includes('z')}>
+        tab content of z
+      </TabPanel>
+    </Tab>
+  );
+}
+
 describe('BareTabComponent', () => {
-  function TestMain({lazy = [], ...restProps}: {lazy?: ReadonlyArray<TestTabKey>; history?: History}) {
-    return (
-      <Tab synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY} {...restProps}>
-        <TabList>
-          <TabNav tabKey="x">tab nav x</TabNav>
-          <TabNav tabKey="y">tab nav y</TabNav>
-          <TabNav tabKey="z">tab nav z</TabNav>
-        </TabList>
-        <TabPanel tabKey="x" lazy={lazy.includes('x')}>
-          tab content of x
-        </TabPanel>
-        <TabPanel tabKey="y" lazy={lazy.includes('y')}>
-          tab content of y
-        </TabPanel>
-        <TabPanel tabKey="z" lazy={lazy.includes('z')}>
-          tab content of z
-        </TabPanel>
-      </Tab>
-    );
+  function TestMain(props: Props) {
+    const {history} = props;
+
+    const [loc, setPath] = useState(history?.location);
+    useEffect(() => {
+      if (history == null) {
+        return;
+      }
+
+      return history.listen(({location}) => {
+        setPath(location);
+      });
+    }, [history]);
+
+    if (loc == null) {
+      return <TabPage {...props} />;
+    }
+
+    if (loc.pathname === '/some-other') {
+      return <div>some other page</div>;
+    } else {
+      return <TabPage {...props} />;
+    }
   }
 
+  const isSomeOtherPage = () => screen.getByText('some other page') != null;
   const getTabNav = (k: TestTabKey) => screen.getByText(`tab nav ${k}`);
   const getTabPanel = (k: TestTabKey) => screen.getByText(`tab content of ${k}`);
   const queryTabPanel = (k: TestTabKey) => screen.queryByText(`tab content of ${k}`);
@@ -111,13 +140,34 @@ describe('BareTabComponent', () => {
       </React.StrictMode>,
     );
 
-    expect(history.index).toBe(1);
+    expect(history.index).toBe(0);
 
     await userEvent.click(getTabNav('z'));
-    expect(history.index).toBe(2);
+    expect(history.index).toBe(1);
 
     history.back();
 
-    expect(history.index).toBe(1);
+    expect(history.index).toBe(0);
+  });
+
+  test('revoke tab position on history back from other page', async () => {
+    const history = createMemoryHistory({
+      initialEntries: [
+        {pathname: '/', state: {['test-main']: 'x'}},
+        {pathname: '/', state: {['test-main']: 'z'}},
+        {pathname: '/some-other'},
+      ],
+    });
+
+    render(<TestMain history={history} />);
+
+    await waitFor(() => expect(isSomeOtherPage()).toBeTruthy(), {timeout: 100});
+
+    history.back();
+    await waitFor(() => expect(getTabPanel('z').hidden).toBeFalsy(), {timeout: 100});
+
+    history.back();
+    await waitFor(() => expect(getTabPanel('x').hidden).toBeFalsy(), {timeout: 100});
+    await waitFor(() => expect(getTabPanel('z').hidden).toBeTruthy(), {timeout: 100});
   });
 });
