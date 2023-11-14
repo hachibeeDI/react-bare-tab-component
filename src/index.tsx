@@ -123,10 +123,15 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
         [history, setTabKey, synchronizeHistoryKey],
       );
 
+      const historyInitialized = useRef<string>();
       useEffect(() => {
         if (synchronizeHistoryKey == null || history == null) {
           return;
         }
+        if (historyInitialized.current === synchronizeHistoryKey) {
+          return;
+        }
+        historyInitialized.current = synchronizeHistoryKey;
 
         // 初期値投入
         history.push('', {[synchronizeHistoryKey]: tabKey});
@@ -143,7 +148,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
             history.back();
           }
         });
-      }, [synchronizeHistoryKey]);
+      }, [history, synchronizeHistoryKey]);
 
       return (
         <TabContext.Provider value={{tabKey, setTabKey: tabKeySetter}}>
