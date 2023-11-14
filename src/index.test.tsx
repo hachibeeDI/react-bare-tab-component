@@ -98,4 +98,19 @@ describe('BareTabComponent', () => {
     await waitFor(() => expect(getTabPanel('z').hidden).toBeTruthy(), {timeout: 100});
     expect(getTabPanel('y').hidden).toBeFalsy();
   });
+
+  test('has no history duplication on init if React is development mode', async () => {
+    const history = createMemoryHistory();
+
+    render(<React.StrictMode><TestMain history={history} /></React.StrictMode>);
+
+    expect(history.index).toBe(1);
+
+    await userEvent.click(getTabNav('z'));
+    expect(history.index).toBe(2);
+
+    history.back();
+
+    expect(history.index).toBe(1);
+  });
 });
