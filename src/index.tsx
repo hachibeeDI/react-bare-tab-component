@@ -77,6 +77,15 @@ type TabProps<Keys extends string, HistoryKey extends string | undefined = undef
   children: ReactNode;
 };
 
+function getLocStateIfExists<Keys>(loc: undefined | History['location'], key: string | undefined): undefined | Keys {
+  if (key == null || loc?.state == null) {
+    return undefined;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
+  return (loc.state as any)[key];
+}
+
 /**
  * @typeParam Keys string literal types which can be tabKey
  * @param defaultTabKey default tab key should be selected.
@@ -104,7 +113,11 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
   return {
     Tab<HistoryKey extends string>(this: void, props: TabProps<Keys, HistoryKey>) {
       const {className, overwriteDefault, history, synchronizeHistoryKey, children} = props;
-      const [tabKey, setTabKey] = useState<Keys>(overwriteDefault ?? defaultTabKey);
+
+      const [tabKey, setTabKey] = useState<Keys>(
+        () => getLocStateIfExists(history?.location, synchronizeHistoryKey) ?? overwriteDefault ?? defaultTabKey,
+      );
+
       const tabKeySetter = useCallback(
         (k: SetStateAction<Keys>) => {
           let nextKey: Keys;
