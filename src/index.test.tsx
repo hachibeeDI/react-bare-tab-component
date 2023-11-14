@@ -1,14 +1,12 @@
 import React from 'react';
 
-import {render, screen, cleanup, waitFor} from '@testing-library/react';
+import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {createMemoryHistory} from 'history';
 import type {History} from 'history';
-import {describe, expect, test, afterEach} from 'vitest';
+import {describe, expect, test} from 'vitest';
 
 import tabFactory from './';
-
-afterEach(cleanup);
 
 const TEST_SYNCHRONIZE_HISTORY_KEY = 'test-main';
 
@@ -102,7 +100,11 @@ describe('BareTabComponent', () => {
   test('has no history duplication on init if React is development mode', async () => {
     const history = createMemoryHistory();
 
-    render(<React.StrictMode><TestMain history={history} /></React.StrictMode>);
+    render(
+      <React.StrictMode>
+        <TestMain history={history} />
+      </React.StrictMode>,
+    );
 
     expect(history.index).toBe(1);
 
