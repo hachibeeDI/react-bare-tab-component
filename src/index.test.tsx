@@ -111,13 +111,13 @@ describe('BareTabComponent', () => {
       </React.StrictMode>,
     );
 
-    expect(history.index).toBe(1);
+    expect(history.index).toBe(0);
 
     await userEvent.click(getTabNav('z'));
-    expect(history.index).toBe(2);
+    expect(history.index).toBe(1);
 
     history.back();
 
-    expect(history.index).toBe(1);
+    expect(history.index).toBe(0);
   });
 });

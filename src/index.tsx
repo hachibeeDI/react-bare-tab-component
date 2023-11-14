@@ -134,7 +134,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
         historyInitialized.current = synchronizeHistoryKey;
 
         // 初期値投入
-        history.push('', {[synchronizeHistoryKey]: tabKey});
+        history.replace('', {[synchronizeHistoryKey]: tabKey});
         return history.listen(({action, location}) => {
           if (action !== Action.Pop) {
             return;
