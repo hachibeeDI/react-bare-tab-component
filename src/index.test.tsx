@@ -1,12 +1,17 @@
 import React from 'react';
 
 import {render, screen, waitFor} from '@testing-library/react';
+//  because of a bug
+//  eslint-disable-next-line testing-library/no-manual-cleanup
+import {cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {createMemoryHistory} from 'history';
 import type {History} from 'history';
-import {describe, expect, test} from 'vitest';
+import {describe, expect, test, afterEach} from 'vitest';
 
 import tabFactory from './';
+
+afterEach(cleanup);
 
 const TEST_SYNCHRONIZE_HISTORY_KEY = 'test-main';
 
