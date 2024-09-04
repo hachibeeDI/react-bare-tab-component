@@ -118,7 +118,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
         () => getLocStateIfExists(history?.location, synchronizeHistoryKey) ?? overwriteDefault ?? defaultTabKey,
       );
 
-      const tabKeySetter = useCallback(
+      const tabKeySetter: typeof setTabKey = useCallback(
         (k: SetStateAction<Keys>) => {
           let nextKey: Keys;
           setTabKey((prev) => {
@@ -148,7 +148,7 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
 
         // 初期値投入
         history.replace('', {[synchronizeHistoryKey]: tabKey});
-        return history.listen(({action, location}) => {
+        const unsub = history.listen(({action, location}) => {
           if (action !== Action.Pop) {
             return;
           }
@@ -159,7 +159,11 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
             setTabKey(state[synchronizeHistoryKey] as Keys);
           }
         });
-      }, [history, synchronizeHistoryKey]);
+        return () => {
+          historyInitialized.current = undefined;
+          unsub();
+        };
+      }, [history, synchronizeHistoryKey, historyInitialized]);
 
       return (
         <TabContext.Provider value={{tabKey, setTabKey: tabKeySetter}}>
@@ -212,6 +216,10 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
         </TabPanelContent>
       );
     },
+    /**
+     * FIXME: Contextを利用しているので <Tab /> を宣言した下階層でしか使えない……
+     * @returns
+     */
     useTabState(this: void): [tabKey: Keys, setTabKey: SetTabAction<Keys>] {
       const {tabKey, setTabKey} = useContext(TabContext);
       return [tabKey, setTabKey];
