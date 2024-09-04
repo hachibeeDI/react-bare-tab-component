@@ -17,29 +17,38 @@ const TEST_SYNCHRONIZE_HISTORY_KEY = 'test-main';
 
 type TestTabKey = 'x' | 'y' | 'z';
 
-const {Tab, TabList, TabNav, TabPanel} = tabFactory<TestTabKey>('y');
+const {Tab, TabList, TabNav, TabPanel, useTabState} = tabFactory<TestTabKey>('y');
 
 type Props = {lazy?: ReadonlyArray<TestTabKey>; history?: History};
+
+function TabKeyWatcher() {
+  const [key, _setKey] = useTabState();
+
+  return <div>tab key is: {key}</div>;
+}
 
 function TabPage(props: Props) {
   const {lazy = []} = props;
   return (
-    <Tab synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY} {...props}>
-      <TabList>
-        <TabNav tabKey="x">tab nav x</TabNav>
-        <TabNav tabKey="y">tab nav y</TabNav>
-        <TabNav tabKey="z">tab nav z</TabNav>
-      </TabList>
-      <TabPanel tabKey="x" lazy={lazy.includes('x')}>
-        tab content of x
-      </TabPanel>
-      <TabPanel tabKey="y" lazy={lazy.includes('y')}>
-        tab content of y
-      </TabPanel>
-      <TabPanel tabKey="z" lazy={lazy.includes('z')}>
-        tab content of z
-      </TabPanel>
-    </Tab>
+    <React.StrictMode>
+      <Tab synchronizeHistoryKey={TEST_SYNCHRONIZE_HISTORY_KEY} {...props}>
+        <TabList>
+          <TabNav tabKey="x">tab nav x</TabNav>
+          <TabNav tabKey="y">tab nav y</TabNav>
+          <TabNav tabKey="z">tab nav z</TabNav>
+        </TabList>
+        <TabKeyWatcher />
+        <TabPanel tabKey="x" lazy={lazy.includes('x')}>
+          tab content of x
+        </TabPanel>
+        <TabPanel tabKey="y" lazy={lazy.includes('y')}>
+          tab content of y
+        </TabPanel>
+        <TabPanel tabKey="z" lazy={lazy.includes('z')}>
+          tab content of z
+        </TabPanel>
+      </Tab>
+    </React.StrictMode>
   );
 }
 
@@ -63,7 +72,12 @@ describe('BareTabComponent', () => {
     }
 
     if (loc.pathname === '/some-other') {
-      return <div>some other page</div>;
+      return (
+        <>
+          <TabKeyWatcher />
+          <div>some other page</div>
+        </>
+      );
     } else {
       return <TabPage {...props} />;
     }
@@ -73,6 +87,7 @@ describe('BareTabComponent', () => {
   const getTabNav = (k: TestTabKey) => screen.getByText(`tab nav ${k}`);
   const getTabPanel = (k: TestTabKey) => screen.getByText(`tab content of ${k}`);
   const queryTabPanel = (k: TestTabKey) => screen.queryByText(`tab content of ${k}`);
+  const queryCurrentTabKeyState = (k: TestTabKey) => screen.getByText(`tab key is: ${k}`);
 
   test('shows default pane on init.', () => {
     render(<TestMain />);
@@ -153,6 +168,7 @@ describe('BareTabComponent', () => {
   test('revoke tab position on history back from other page', async () => {
     const history = createMemoryHistory({
       initialEntries: [
+        {pathname: '/', state: {['test-main']: 'y'}},
         {pathname: '/', state: {['test-main']: 'x'}},
         {pathname: '/', state: {['test-main']: 'z'}},
         {pathname: '/some-other'},
@@ -165,9 +181,11 @@ describe('BareTabComponent', () => {
 
     history.back();
     await waitFor(() => expect(getTabPanel('z').hidden).toBeFalsy(), {timeout: 100});
+    await waitFor(() => expect(queryCurrentTabKeyState('z')).toBeTruthy(), {timeout: 1});
 
     history.back();
     await waitFor(() => expect(getTabPanel('x').hidden).toBeFalsy(), {timeout: 100});
     await waitFor(() => expect(getTabPanel('z').hidden).toBeTruthy(), {timeout: 100});
+    await waitFor(() => expect(queryCurrentTabKeyState('x')).toBeTruthy(), {timeout: 1});
   });
 });
