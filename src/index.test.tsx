@@ -168,9 +168,9 @@ describe('BareTabComponent', () => {
   test('revoke tab position on history back from other page', async () => {
     const history = createMemoryHistory({
       initialEntries: [
-        {pathname: '/', state: {['test-main']: 'y'}},
-        {pathname: '/', state: {['test-main']: 'x'}},
-        {pathname: '/', state: {['test-main']: 'z'}},
+        {pathname: '/', state: {'test-main': 'y'}},
+        {pathname: '/', state: {'test-main': 'x'}},
+        {pathname: '/', state: {'test-main': 'z'}},
         {pathname: '/some-other'},
       ],
     });
