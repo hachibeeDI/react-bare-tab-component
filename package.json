@@ -30,20 +30,21 @@
   "homepage": "https://github.com/hachibeeDI/react-bare-tab-component#readme",
   "peerDependencies": {
     "history": "^5.3.0",
-    "react": "^18.2.0"
+    "react": "^18.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
-    "@testing-library/react": "^14.1.0",
-    "@testing-library/user-event": "^14.5.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
-    "@vitejs/plugin-react": "^4.1.1",
-    "happy-dom": "^12.10.3",
+    "@vitejs/plugin-react": "^4.3.2",
+    "happy-dom": "^15.7.4",
     "history": "^5.3.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^5.2.2",
-    "vitest": "^0.34.6"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.2"
   }
 }
