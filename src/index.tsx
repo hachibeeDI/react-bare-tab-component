@@ -1,7 +1,20 @@
 import type {ReactNode, SetStateAction} from 'react';
 import React, {useEffect, memo, useRef, createContext, useContext, useState, useCallback} from 'react';
 
-import {Action, type History} from 'history';
+/**
+ * 現在のタブキーを外部ストア(history, URL, localStorage 等)と同期するための注入インターフェース。
+ * これを実装したオブジェクトを `Tab` の `sync` prop に渡す。
+ */
+export type TabStateSync<Keys extends string> = {
+  /** 永続化されたタブキーを読む。初期値の決定に使う。 */
+  read(): Keys | undefined;
+  /** ユーザー操作によるタブ変更を新規エントリとして永続化する(history.push 相当)。 */
+  push(key: Keys): void;
+  /** 初期タブキーを新規エントリを作らずに記録する(history.replace 相当)。 */
+  replace(key: Keys): void;
+  /** 外部起因の変更(戻る/進む等)を購読する。unsubscribe を返す。 */
+  subscribe(onChange: (key: Keys) => void): () => void;
+};
 
 type BaseProps<Key extends string> = {
   tabKey: Key;
@@ -62,29 +75,16 @@ const TabPanelContent = memo(function TabPanelContent(props: {
   );
 });
 
-type TabProps<Keys extends string, HistoryKey extends string | undefined = undefined> = {
+type TabProps<Keys extends string> = {
   className?: string;
-  overwriteDefault?: Keys;
+  overwriteDefault?: Keys | undefined;
   /**
-   * History object to sync.
+   * 現在のタブキーを外部ストアと同期するためのアダプタ。
+   * 省略時は同期しない。
    */
-  history?: History;
-  /**
-   * Key to store current tab key in history state.
-   * You must use it with `history` props.
-   */
-  synchronizeHistoryKey?: HistoryKey;
+  sync?: TabStateSync<Keys> | undefined;
   children: ReactNode;
 };
-
-function getLocStateIfExists<Keys>(loc: undefined | History['location'], key: string | undefined): undefined | Keys {
-  if (key == null || loc?.state == null) {
-    return undefined;
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
-  return (loc.state as any)[key];
-}
 
 /**
  * @typeParam Keys string literal types which can be tabKey
@@ -111,59 +111,41 @@ export default function tabFactory<Keys extends string>(defaultTabKey: Keys) {
   const TabContext = createContext<TabContext<Keys>>({tabKey: defaultTabKey, setTabKey: null as any});
 
   return {
-    Tab<HistoryKey extends string>(this: void, props: TabProps<Keys, HistoryKey>) {
-      const {className, overwriteDefault, history, synchronizeHistoryKey, children} = props;
+    Tab(this: void, props: TabProps<Keys>) {
+      const {className, overwriteDefault, sync, children} = props;
 
-      const [tabKey, setTabKey] = useState<Keys>(
-        () => getLocStateIfExists(history?.location, synchronizeHistoryKey) ?? overwriteDefault ?? defaultTabKey,
-      );
+      const [tabKey, setTabKey] = useState<Keys>(() => sync?.read() ?? overwriteDefault ?? defaultTabKey);
 
-      const tabKeySetter: typeof setTabKey = useCallback(
+      // 関数形式の更新を stale な値で解決しないよう、最新値を ref で保持する。
+      const tabKeyRef = useRef(tabKey);
+      tabKeyRef.current = tabKey;
+      const tabKeySetter: SetTabAction<Keys> = useCallback(
         (k: SetStateAction<Keys>) => {
-          let nextKey: Keys;
-          setTabKey((prev) => {
-            if (typeof k === 'function') {
-              nextKey = k(prev);
-            } else {
-              nextKey = k;
-            }
-            return nextKey;
-          });
-          if (synchronizeHistoryKey && history) {
-            history.push('', {[synchronizeHistoryKey]: k});
-          }
+          const nextKey = typeof k === 'function' ? k(tabKeyRef.current) : k;
+          setTabKey(nextKey);
+          sync?.push(nextKey);
         },
-        [history, setTabKey, synchronizeHistoryKey],
+        [sync],
       );
 
-      const historyInitialized = useRef<string>();
+      const initialized = useRef(false);
       useEffect(() => {
-        if (synchronizeHistoryKey == null || history == null) {
+        if (sync == null) {
           return;
         }
-        if (historyInitialized.current === synchronizeHistoryKey) {
+        if (initialized.current) {
           return;
         }
-        historyInitialized.current = synchronizeHistoryKey;
+        initialized.current = true;
 
         // 初期値投入
-        history.replace('', {[synchronizeHistoryKey]: tabKey});
-        const unsub = history.listen(({action, location}) => {
-          if (action !== Action.Pop) {
-            return;
-          }
-
-          const state: any = location.state;
-          if (state != null && synchronizeHistoryKey in state) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            setTabKey(state[synchronizeHistoryKey] as Keys);
-          }
-        });
+        sync.replace(tabKey);
+        const unsub = sync.subscribe((key) => setTabKey(key));
         return () => {
-          historyInitialized.current = undefined;
+          initialized.current = false;
           unsub();
         };
-      }, [history, synchronizeHistoryKey, historyInitialized]);
+      }, [sync]);
 
       return (
         <TabContext.Provider value={{tabKey, setTabKey: tabKeySetter}}>
